@@ -3,7 +3,6 @@ const router = express.Router();
 const mysql = require("mysql");
 const config = require("../config/config")
 router.post("/login", (req,res) => {
-    // console.log(req.body);
     const params = req.body;
     console.log(params);
     //连接数据库，匹配用户名与密码
