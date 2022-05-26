@@ -3,6 +3,8 @@ const router = express.Router();
 const mysql = require("mysql");
 
 const config = require("../config/config");
+const Query = require("mysql/lib/protocol/sequences/Query");
+
 // 获取学生信息接口 /api/stu/stuinfo
 // 模糊查询学生信息复用
 router.get("/stuinfo", (req, res) => {
@@ -31,8 +33,8 @@ router.get("/stuinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,class,major,school,email,state FROM students ${condition} ORDER BY ts DESC;`;
-  
+  const sql = `SELECT id,stuname,code,gender,class,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum-1)*query.pageSize}, ${query.pageSize};`;
+
   console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
@@ -41,10 +43,21 @@ router.get("/stuinfo", (req, res) => {
         item.gender = item.gender === 1 ? "男" : "女";
         item.state = item.state === 1 ? "有效" : "无效";
       });
-      return res.send({
-        state: 1, //查询成功
-        message: "查询成功",
-        data: results,
+      const sql = `SELECT COUNT(id) AS total FROM students ${condition}`;
+      let total;
+      db.query(sql, (err, results1) => {
+        console.log(results1[0].total);
+        console.log(total);
+        total = results1[0].total;
+
+        return res.send({
+          state: 1, //查询成功
+          message: "查询成功",
+          data: {
+            results,
+            total,
+          },
+        });
       });
     } else {
       res.send({
@@ -108,12 +121,12 @@ router.post("/resetpassword", (req, res) => {
 router.post("/statestu", (req, res) => {
   const params = req.body;
   console.log(params);
-//   如果前台传递的数据为空
-  if(!params.stuIds.length){
-      return res.send({
-          state: 0,
-          message: "全部是结课/激活用户，无法二次结课/激活！"
-      })
+  //   如果前台传递的数据为空
+  if (!params.stuIds.length) {
+    return res.send({
+      state: 0,
+      message: "全部是结课/激活用户，无法二次结课/激活！",
+    });
   }
   // 勾选多个，能同时结课/激活
   let when = ``;
