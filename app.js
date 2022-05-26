@@ -6,7 +6,7 @@ const port = 3000;
 const systemuserpost = require("./api/SystemUserPost.js")
 const stu = require("./api/Stu.js")
 
-
+const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
 app.use(express.urlencoded({extended: false}))
 
@@ -17,6 +17,12 @@ app.use("/system/user",systemuserpost)
 app.use("/stu",stu)
 
 // app.get("/aaa",(req,res) =>{
+//     console.log(uuid.v4().replaceAll("-",""));
+//     console.log(uuid.v4().replaceAll("-",""));
+//     console.log(uuid.v4().replaceAll("-",""));
+//     console.log(uuid.v4().replaceAll("-",""));
+//     console.log(uuid.v4().replaceAll("-",""));
+//     console.log(uuid.v4().replaceAll("-",""));
 //     res.send({
 //         state:1,
 //         message: "登录成功"

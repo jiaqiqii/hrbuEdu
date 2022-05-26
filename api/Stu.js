@@ -3,15 +3,36 @@ const router = express.Router();
 const mysql = require("mysql");
 
 const config = require("../config/config");
-
-// 查询学生信息接口 /api/stu/stuinfo
+// 获取学生信息接口 /api/stu/stuinfo
+// 模糊查询学生信息复用
 router.get("/stuinfo", (req, res) => {
-  const params = req.query;
-  console.log(params);
-  //连接数据库
+  // 连接数据库
   const db = mysql.createPool(config);
+  const query = req.query;
+  // 定义模糊查询条件
+  let condition = "";
+  // 判断是否含有参数
+  if (Object.keys(query).length) {
+    condition += "where ";
+  }
+  // 判断并添加模糊搜索条件
+  if (query.stuState && query.stuState != "2") {
+    condition += `state = ${query.stuState} AND `;
+  }
+  if (query.major) {
+    condition += `major = "${query.major}" AND `;
+  }
+  if (query.input) {
+    condition += `stuname LIKE "%${query.input}%" AND `;
+  }
+  // 将拼接的条件后的 “AND ” 删除
+  condition = condition.split(" ");
+  condition.splice(condition.length - 2);
+  condition = condition.join(" ");
+
   //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,class,major,school,email,state FROM students`;
+  const sql = `SELECT id,stuname,code,gender,class,major,school,email,state FROM students ${condition} ORDER BY ts DESC;`;
+  
   console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
