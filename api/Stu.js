@@ -4,6 +4,8 @@ const mysql = require("mysql");
 
 const config = require("../config/config");
 const Query = require("mysql/lib/protocol/sequences/Query");
+const uuid = require("uuid")
+
 
 // 获取学生信息接口 /api/stu/stuinfo
 // 模糊查询学生信息复用
@@ -33,7 +35,7 @@ router.get("/stuinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,class,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum-1)*query.pageSize}, ${query.pageSize};`;
+  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum-1)*query.pageSize}, ${query.pageSize};`;
 
   console.log(sql);
   db.query(sql, (err, results) => {
@@ -172,44 +174,33 @@ router.post("/statestu", (req, res) => {
     }
   });
 });
-// router.post("/statestu", (req,res) => {
-//     const params = req.body;
-//     // 重置密码为123
-//     let when = ``;
-//     let price = "";
-//     params.stuIds.forEach((item,index) => {
-//         when += `WHEN ? THEN  `;
-//         price += "?,";
-//         if(index === params.stuIds.length - 1){
-//             price = price.split("")
-//             price.pop();
-//             price = price.join("");
-//         }
-//     })
-//     const sql = `UPDATE students SET
-//         state = CASE id ${when}
-//         END WHERE id IN (${price});`;
-//     // console.log(when,price);
-//     //连接数据库
-//     const db = mysql.createPool(config)
 
-//     db.query(sql,[...params.stuIds, ...params.stuIds], (err,results) =>{
-//         if(err) return console.log(err.message);
-//         console.log(results)
-//         if(results.affectedRows){
-//             return res.send({
-//                 state: 1,  //重置密码成功
-//                 message: "重置密码成功",
-//             })
-//         }else{
-//             res.send({
-//                 state: 0,
-//                 message: "重置密码失败",
-//             })
-//         }
+// 新增学生接口 /api/stu/addstu
+router.post("/addstu", (req, res) => {
+  const params = req.body;
+  console.log(params);
+  // 连接数据库
+  const db = mysql.createPool(config);
 
-//     })
+  params.id = uuid.v1().replaceAll("-","")
 
-//    })
+  const sql = `insert into students(id,code,stuname,gender,email,phone,indent,school,major,stuclass,state,password) values('${params.id}','${params.code}','${params.stuname}','${params.gender}','${params.email}','${params.phone}','${params.indent}','${params.school}','${params.major}','${params.stuclass}','1','e10adc3949ba59abbe56e057f20f883e');`
+  console.log(sql);
+  db.query(sql,(err, results) => {
+    if (err) return console.log(err.message);
+    console.log(results);
+    if (results.affectedRows) {
+      return res.send({
+        state: 1, 
+        message: "新增学生成功",
+      });
+    } else {
+      res.send({
+        state: 0,
+        message: "新增学生失败",
+      });
+    }
+  });
+});
 
 module.exports = router;
