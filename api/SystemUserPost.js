@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const config = require("../config/config")
+
 router.post("/login", (req,res) => {
     const params = req.body;
     console.log(params);

@@ -42,8 +42,7 @@ router.get("/stuinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${
-    (query.pageNum - 1) * query.pageSize
+  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum - 1) * query.pageSize
   }, ${query.pageSize};`;
 
   console.log(sql);

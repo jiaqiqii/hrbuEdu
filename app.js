@@ -6,6 +6,7 @@ const port = 3000;
 const systemuserpost = require("./api/SystemUserPost.js")
 const stu = require("./api/Stu.js")
 const user = require("./api/User.js")
+const classes = require("./api/Classes.js")
 
 const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
@@ -17,6 +18,8 @@ app.use(express.json());
 app.use("/system/user",systemuserpost)
 app.use("/stu",stu)
 app.use("/user", user)
+app.use("/class", classes)
+ 
 
 
 // app.get("/aaa",(req,res) =>{
