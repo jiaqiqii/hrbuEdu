@@ -3,6 +3,7 @@ const router = express.Router();
 const mysql = require("mysql");
 const config = require("../config/config");
 const dayjs = require("dayjs");
+const uuid = require("uuid");
 
 
 // 格式化时间
@@ -131,6 +132,32 @@ router.post("/stateclass", (req, res) => {
     });
   });
 
+// 新增班级接口 /api/class/addclass
+router.post("/addclass", (req, res) => {
+  const params = req.body;
+  // 连接数据库
+  const db = mysql.createPool(config);
 
+  params.id = uuid.v1().replaceAll("-", "");
+
+  // const sql = `insert into class(id,code,classname,school,major,state,level) values('${params.id}','${params.code}','${params.classname}','${params.school}','${params.major}','1','${params.level}');`;
+  const sql = `insert into class(id,classname,school,major,state,level) values('${params.id}','${params.classname}','${params.school}','${params.major}','1','${params.level}');`;
+  console.log(sql)
+  db.query(sql, (err, results) => {
+    if (err) return console.log(err.message);
+    console.log(results);
+    if (results.affectedRows) {
+      return res.send({
+        state: 1,
+        message: "新增班级成功",
+      });
+    } else {
+      res.send({
+        state: 0,
+        message: "新增班级失败",
+      });
+    }
+  });
+});
 
 module.exports = router;
