@@ -13,10 +13,11 @@ const FormatTime = (ts) => {
   
 
 // 获取班级信息接口 /api/class/classinfo
+// 模糊查询复用
 router.get("/classinfo", (req, res) => {
   const query = req.query;
   console.log(query);
-  //连接数据库，匹配用户名与密码
+  //连接数据库
   const db = mysql.createPool(config);
   // 定义模糊查询条件
   let condition = "";
@@ -40,7 +41,7 @@ router.get("/classinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询班级表
-  const sql = `select id,classname,school,major,state from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
+  const sql = `select id,classname,school,major,state,ts from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
   console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
@@ -50,13 +51,13 @@ router.get("/classinfo", (req, res) => {
             item.state = item.state === 1 ? "有效" : "无效";
           });
 
-      const sql = `SELECT COUNT(id) as total FROM class;`;
+      const sql = `SELECT COUNT(id) as total FROM class ${condition};`;
       let total;
       db.query(sql,(error,results1) => {
         console.log(results1[0].total);
         console.log(total);
         total = results1[0].total
-        res.send({
+        return res.send({
           state: 1, //查询成功
           message: "查询成功",
           data:{
@@ -140,7 +141,6 @@ router.post("/addclass", (req, res) => {
 
   params.id = uuid.v1().replaceAll("-", "");
 
-  // const sql = `insert into class(id,code,classname,school,major,state,level) values('${params.id}','${params.code}','${params.classname}','${params.school}','${params.major}','1','${params.level}');`;
   const sql = `insert into class(id,classname,school,major,state,level) values('${params.id}','${params.classname}','${params.school}','${params.major}','1','${params.level}');`;
   console.log(sql)
   db.query(sql, (err, results) => {
@@ -160,4 +160,41 @@ router.post("/addclass", (req, res) => {
   });
 });
 
+// 查询某个学生信息接口 /api/stu/stucheck
+router.get("/stucheck", (req, res) => {
+  // 连接数据库
+  const db = mysql.createPool(config);
+
+  const query = req.query;
+  // console.log(query);
+  
+  //查询某个学生信息
+  const sql = `SELECT * FROM class WHERE id = "${query.id}";`;
+  // console.log(sql);
+
+  db.query(sql, (err, results) => {
+    if (err) return console.log(err.message);
+    if (results.length) {
+        results.map((item) => {
+          item.ts = FormatTime(item.ts);
+          item.state = item.state === 1 ? "有效" : "无效";        
+        });
+      return res.send({
+        state: 1,
+        message: "查询学生信息成功",
+        data:{
+          results,
+        }
+      });
+    } else {
+      res.send({
+        state: 0,
+        message: "查询学生信息失败",
+        data:{
+          results,
+        }
+      });
+    }
+  });
+});
 module.exports = router;
