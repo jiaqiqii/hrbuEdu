@@ -41,7 +41,9 @@ router.get("/classinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询班级表
+  // const sql = `select id,classname,school,major,state,ts from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
   const sql = `select id,classname,school,major,state,ts from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
+
   console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
@@ -63,14 +65,47 @@ router.get("/classinfo", (req, res) => {
           data:{
             results,
             total
-          }
+          },
         });
         
       })
-      
     } else {
       res.send({
         state: 0, //查询失败
+        message: "查询失败",
+      });
+    }
+  });
+});
+
+// 查询学生人数 /api/class/stunum
+router.get("/stunum", (req, res) => {
+  // 连接数据库
+  const db = mysql.createPool(config);
+
+  const query = req.query;
+  console.log(query);
+  
+  // const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "计算机201901";`;
+  const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "${query.classname}" and school = "${query.school}";`;
+  console.log(sql);
+  let stunum;
+  db.query(sql, (err, results) => {
+    if (err) return console.log(err.message);
+    if (results.length) {
+      // console.log(results[0].stunum);
+      // stunum = results[0].stunum
+      return res.send({
+        state: 1,
+        message: "查询成功",
+        data:{
+          results,
+          stunum
+        }
+      });
+    } else {
+      res.send({
+        state: 0,
         message: "查询失败",
       });
     }
@@ -138,6 +173,9 @@ router.post("/addclass", (req, res) => {
   const params = req.body;
   // 连接数据库
   const db = mysql.createPool(config);
+//  if(){
+
+//  } 
 
   params.id = uuid.v1().replaceAll("-", "");
 
@@ -160,15 +198,15 @@ router.post("/addclass", (req, res) => {
   });
 });
 
-// 查询某个学生信息接口 /api/stu/stucheck
-router.get("/stucheck", (req, res) => {
+// 查询某个班级信息接口 /api/class/classcheck
+router.get("/classcheck", (req, res) => {
   // 连接数据库
   const db = mysql.createPool(config);
 
   const query = req.query;
   // console.log(query);
   
-  //查询某个学生信息
+  //查询某个班级信息
   const sql = `SELECT * FROM class WHERE id = "${query.id}";`;
   // console.log(sql);
 
@@ -181,7 +219,7 @@ router.get("/stucheck", (req, res) => {
         });
       return res.send({
         state: 1,
-        message: "查询学生信息成功",
+        message: "查询班级信息成功",
         data:{
           results,
         }
@@ -189,7 +227,7 @@ router.get("/stucheck", (req, res) => {
     } else {
       res.send({
         state: 0,
-        message: "查询学生信息失败",
+        message: "查询班级信息失败",
         data:{
           results,
         }
@@ -197,4 +235,30 @@ router.get("/stucheck", (req, res) => {
     }
   });
 });
+
+// 编辑班级信息 /api/class/editclass
+router.post("/editclass", (req, res) => {
+  const params = req.body;
+  // 连接数据库
+  const db = mysql.createPool(config);
+
+  const sql = `UPDATE class SET major="${params.major}" ,classname = "${params.classname}" WHERE id ="${params.id}"`;
+  console.log(sql)
+  db.query(sql, (err, results) => {
+    if (err) return console.log(err.message);
+    console.log(results);
+    if (results.affectedRows) {
+      return res.send({
+        state: 1,
+        message: "编辑班级成功",
+      });
+    } else {
+      res.send({
+        state: 0,
+        message: "编辑班级失败",
+      });
+    }
+  });
+});
+
 module.exports = router;

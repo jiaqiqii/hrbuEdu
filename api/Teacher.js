@@ -12,11 +12,9 @@ const FormatTime = (ts) => {
   return dayjs(ts).format("YYYY-MM-DD HH:mm:ss");
 }
 
-
-
-// 获取学生信息接口 /api/stu/stuinfo
-// 模糊查询学生信息复用
-router.get("/stuinfo", (req, res) => {
+// 获取教师信息接口 /api/teacher/teachinfo
+// 模糊查询教师信息复用
+router.get("/teachinfo", (req, res) => {
   // 连接数据库
   const db = mysql.createPool(config);
   const query = req.query;
@@ -27,38 +25,37 @@ router.get("/stuinfo", (req, res) => {
     condition += "where ";
   }
   // 判断并添加模糊搜索条件
-  if (query.stuState && query.stuState != "2") {
-    condition += `state = ${query.stuState} AND `;
+  if (query.teachState && query.teachState != "2") {
+    condition += `state = ${query.teachState} AND `;
   }
   if (query.major) {
     condition += `major = "${query.major}" AND `;
   }
   if (query.input) {
-    condition += `stuname LIKE "%${query.input}%" AND `;
+    condition += `teachname LIKE "%${query.input}%" AND `;
   }
   // 将拼接的条件后的 “AND ” 删除
   condition = condition.split(" ");
   condition.splice(condition.length - 2);
   condition = condition.join(" ");
 
-  //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum - 1) * query.pageSize
+  //查询信息
+  const sql = `SELECT * FROM users ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum - 1) * query.pageSize
   }, ${query.pageSize};`;
 
-  console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
     if (results.length) {
       results.map((item) => {
         item.ts = FormatTime(item.ts);
-        item.gender = item.gender === 1 ? "男" : "女";
+        // item.gender = item.gender === 1 ? "男" : "女";
         item.state = item.state === 1 ? "有效" : "无效";
       });
-      const sql = `SELECT COUNT(id) AS total FROM students ${condition}`;
+      const sql = `SELECT COUNT(id) AS total FROM users ${condition}`;
       let total;
       db.query(sql, (err, results1) => {
-        console.log(results1[0].total);
-        console.log(total);
+        // console.log(results1[0].total);
+        // console.log(total);
         total = results1[0].total;
         return res.send({
           state: 1, //查询成功
@@ -79,12 +76,11 @@ router.get("/stuinfo", (req, res) => {
   });
 });
 
-// 重置学生密码接口 /api/stu/resetpassword
+// 重置教师密码接口 /api/teacher/resetpassword
 router.post("/resetpassword", (req, res) => {
   const params = req.body;
-
   // 如果用户勾选的全部都是禁用的用户
-  if (!params.stuIds.length) {
+  if (!params.teachIds.length) {
     return res.send({
       state: 0,
       message: "全部是禁用用户，无法重置密码！",
@@ -94,23 +90,22 @@ router.post("/resetpassword", (req, res) => {
   // 重置密码为123
   let when = ``;
   let price = "";
-  params.stuIds.forEach((item, index) => {
+  params.teachIds.forEach((item, index) => {
     when += `WHEN ? THEN "202cb962ac59075b964b07152d234b70" `;
     price += "?,";
-    if (index === params.stuIds.length - 1) {
+    if (index === params.teachIds.length - 1) {
       price = price.split("");
       price.pop();
       price = price.join("");
     }
   });
-  const sql = `UPDATE students SET 
+  const sql = `UPDATE users SET 
         password = CASE id ${when}
         END WHERE id IN (${price});`;
   // console.log(when,price);
   //连接数据库
   const db = mysql.createPool(config);
-
-  db.query(sql, [...params.stuIds, ...params.stuIds], (err, results) => {
+  db.query(sql, [...params.teachIds, ...params.teachIds], (err, results) => {
     if (err) return console.log(err.message);
     console.log(results);
     if (results.affectedRows) {
@@ -127,12 +122,12 @@ router.post("/resetpassword", (req, res) => {
   });
 });
 
-// 学生结课/激活接口 /api/stu/statestu
-router.post("/statestu", (req, res) => {
+// 结课/激活接口 /api/teacher/stateteach
+router.post("/stateteach", (req, res) => {
   const params = req.body;
   console.log(params);
   //   如果前台传递的数据为空
-  if (!params.stuIds.length) {
+  if (!params.teachIds.length) {
     return res.send({
       state: 0,
       message: "全部是结课/激活用户，无法二次结课/激活！",
@@ -141,25 +136,25 @@ router.post("/statestu", (req, res) => {
   // 勾选多个，能同时结课/激活
   let when = ``;
   let price = "";
-  params.stuIds.forEach((item, index) => {
+  params.teachIds.forEach((item, index) => {
     when += `WHEN ? THEN ${params.state} `;
     price += "?,";
-    if (index === params.stuIds.length - 1) {
+    if (index === params.teachIds.length - 1) {
       price = price.split("");
       price.pop();
       price = price.join("");
     }
   });
-  const sql = `UPDATE students SET  
+  const sql = `UPDATE users SET  
         state = CASE id ${when}
         END WHERE id IN (${price});`;
 
   console.log("when,price",when, price);
 
-  // 连接数据库,更改学生状态
+  // 连接数据库,更改状态
   const db = mysql.createPool(config);
   console.log(sql);
-  db.query(sql, [...params.stuIds, ...params.stuIds], (err, results) => {
+  db.query(sql, [...params.teachIds, ...params.teachIds], (err, results) => {
     if (err) return console.log(err.message);
     console.log(results);
     if (results.affectedRows) {
@@ -183,34 +178,38 @@ router.post("/statestu", (req, res) => {
   });
 });
 
-// 新增学生接口 /api/stu/addstu
-router.post("/addstu", (req, res) => {
+// 新增教师接口 /api/teacher/addteach
+router.post("/addteach", (req, res) => {
   const params = req.body;
+  console.log("params",params)
   // 连接数据库
   const db = mysql.createPool(config);
 
   params.id = uuid.v1().replaceAll("-", "");
 
-  const sql = `insert into students(id,code,stuname,gender,email,phone,indent,school,major,stuclass,state,password) values('${params.id}','${params.code}','${params.stuname}','${params.gender}','${params.email}','${params.phone}','${params.indent}','${params.school}','${params.major}','${params.stuclass}','1','e10adc3949ba59abbe56e057f20f883e');`;
+  // const sql = `insert into users(id,code,stuname,gender,email,phone,indent,school,major,stuclass,state,password) values('${params.id}','${params.code}','${params.stuname}','${params.gender}','${params.email}','${params.phone}','${params.indent}','${params.school}','${params.major}','${params.stuclass}','1','e10adc3949ba59abbe56e057f20f883e');`;
+  const sql = `insert into users(id,username,teachname,school,major,classname,gender,email,phone,state,password) 
+  values('${params.id}','${params.username}','${params.teachname}','${params.school}','${params.major}','${params.classname}','${params.gender}','${params.email}','${params.password}','1','e10adc3949ba59abbe56e057f20f883e');`;
+  console.log(sql)
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
     console.log(results);
     if (results.affectedRows) {
       return res.send({
         state: 1,
-        message: "新增学生成功",
+        message: "新增教师成功",
       });
     } else {
       res.send({
         state: 0,
-        message: "新增学生失败",
+        message: "新增教师失败",
       });
     }
   });
 });
 
-// 查询某个学生信息接口 /api/stu/stucheck
-router.get("/stucheck", (req, res) => {
+// 查询某个学生信息接口 /api/teacher/teachcheck
+router.get("/teachcheck", (req, res) => {
   // 连接数据库
   const db = mysql.createPool(config);
 
@@ -218,7 +217,7 @@ router.get("/stucheck", (req, res) => {
   // console.log(query);
   
   //查询某个学生信息
-  const sql = `SELECT id,stuname,school,major,stuclass,code,gender,email,indent,introduction,state,ts FROM students WHERE id = "${query.id}";`;
+  const sql = `SELECT * FROM users WHERE id = "${query.id}";`;
   // console.log(sql);
 
   db.query(sql, (err, results) => {
@@ -231,7 +230,7 @@ router.get("/stucheck", (req, res) => {
         });
       return res.send({
         state: 1,
-        message: "查询学生信息成功",
+        message: "查询教师信息成功",
         data:{
           results,
         }
@@ -239,7 +238,7 @@ router.get("/stucheck", (req, res) => {
     } else {
       res.send({
         state: 0,
-        message: "查询学生信息失败",
+        message: "查询教师信息失败",
         data:{
           results,
         }
@@ -248,15 +247,15 @@ router.get("/stucheck", (req, res) => {
   });
 });
 
-// 编辑学生信息 /api/stu/editstu
-router.post("/editstu", (req, res) => {
+// 编辑学生信息 /api/teacher/editteach
+router.post("/editteach", (req, res) => {
   const params = req.body;
   // 连接数据库
   const db = mysql.createPool(config);
   console.log(params);
   params.gender = params.gender === "男" ? 1 : 0;
 
-  const sql =`UPDATE students SET school="${params.school}",major="${params.major}",stuclass = "${params.stuclass}",stuname="${params.stuname}",code="${params.code}",gender="${params.gender}",email="${params.email}",indent="${params.indent}",introduction="${params.introduction}" WHERE id ="${params.id}"`;
+  const sql =`UPDATE users SET school="${params.school}",major="${params.major}",classname = "${params.classname}",username="${params.username}",teachname="${params.teachname}",gender="${params.gender}",email="${params.email}",introduction="${params.introduction}" WHERE id ="${params.id}"`;
   console.log(sql)
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
@@ -264,17 +263,14 @@ router.post("/editstu", (req, res) => {
     if (results.affectedRows) {
       return res.send({
         state: 1,
-        message: "编辑学生成功",
+        message: "编辑教师成功",
       });
     } else {
       res.send({
         state: 0,
-        message: "编辑学生失败",
+        message: "编辑教师失败",
       });
     }
   });
 });
-
-
-
 module.exports = router;
