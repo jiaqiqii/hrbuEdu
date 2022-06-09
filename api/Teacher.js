@@ -109,6 +109,13 @@ router.post("/resetpassword", (req, res) => {
     if (err) return console.log(err.message);
     console.log(results);
     if (results.affectedRows) {
+      // 邮箱验证
+      const Mail = require("../public/Mail");
+      // console.log(Mail);
+      console.log(params.emailList.join(","));
+      // 发送多个邮箱
+      Mail(params.emailList.join(","))
+      
       return res.send({
         state: 1, //重置密码成功
         message: "重置密码成功",
