@@ -10,10 +10,10 @@ router.post("/addteach", (req, res) => {
     // 连接数据库
     const db = mysql.createPool(config);
   
-    params.id = uuid.v1().replaceAll("-", "");
+    // params.id = uuid.v1().replaceAll("-", "");
   
-    const sql = `insert into textpaper(name,fenlei,xingshi,jianjie) 
-    values('${params.name}','${params.fenlei}','${params.xingshi}','${params.jianjie}','1','e10adc3949ba59abbe56e057f20f883e');`;
+    const sql = `insert into textpaper(name,fenlei,xingshi,jianjie,fangxiang,jineng) 
+    values('${params.name}','${params.fenlei}','${params.xingshi}','${params.jianjie}','${params.fangxiang}','${params.jineng}');`;
     console.log(sql)
     db.query(sql, (err, results) => {
       if (err) return console.log(err.message);
