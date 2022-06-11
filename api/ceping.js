@@ -3,6 +3,7 @@ const router = express.Router();
 const mysql = require("mysql");
 const config = require("../config/config")
 
+// 新增教师接口 /api/teacher/addteach
 router.post("/addteach", (req, res) => {
     const params = req.body;
     console.log("params",params)
@@ -10,8 +11,8 @@ router.post("/addteach", (req, res) => {
     const db = mysql.createPool(config);
   
   
-    const sql = `insert into textpaper(name,fenlei,xingshi,jianjie,fangxiang,jineng) 
-    values('${params.name}','${params.fenlei}','${params.xingshi}','${params.jianjie}','${params.fangxiang}','${params.jineng}');`;
+    const sql = `insert into xinjianceping(name,fenlei,jianjie) 
+    values('${params.name}','${params.fenlei}','${params.jianjie}');`;
     console.log(sql)
     db.query(sql, (err, results) => {
       if (err) return console.log(err.message);

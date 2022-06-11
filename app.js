@@ -9,6 +9,7 @@ const user = require("./api/User.js")
 const classes = require("./api/Classes.js")
 const teacher = require("./api/Teacher.js")
 const shijuan = require("./api/shijuan.js")
+const ceping = require("./api/ceping.js")
 
 const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
@@ -23,6 +24,7 @@ app.use("/user", user)
 app.use("/class", classes)
 app.use("/teacher", teacher)
 app.use("/shijuan", shijuan)
+app.use("/ceping", ceping)
  
 
 
