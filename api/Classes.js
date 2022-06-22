@@ -42,7 +42,7 @@ router.get("/classinfo", (req, res) => {
 
   //查询班级表
   // const sql = `select id,classname,school,major,state,ts from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
-  const sql = `select id,classname,school,major,state,ts from class ${condition} LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
+  const sql = `select c.*, count(c.id = s.classid or null) AS stunum FROM class AS c INNER JOIN students AS s ${condition} group by c.id LIMIT ${(query.pageNum - 1) * query.pageSize},${query.pageSize};`;
 
   console.log(sql);
   db.query(sql, (err, results) => {
@@ -78,39 +78,39 @@ router.get("/classinfo", (req, res) => {
   });
 });
 
-// 查询学生人数 /api/class/stunum
-router.get("/stunum", (req, res) => {
-  // 连接数据库
-  const db = mysql.createPool(config);
+// // 查询学生人数 /api/class/stunum
+// router.get("/stunum", (req, res) => {
+//   // 连接数据库
+//   const db = mysql.createPool(config);
 
-  const query = req.query;
-  console.log(query);
+//   const query = req.query;
+//   console.log(query);
   
-  // const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "计算机201901";`;
-  const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "${query.classname}" and school = "${query.school}";`;
-  console.log(sql);
-  let stunum;
-  db.query(sql, (err, results) => {
-    if (err) return console.log(err.message);
-    if (results.length) {
-      // console.log(results[0].stunum);
-      // stunum = results[0].stunum
-      return res.send({
-        state: 1,
-        message: "查询成功",
-        data:{
-          results,
-          stunum
-        }
-      });
-    } else {
-      res.send({
-        state: 0,
-        message: "查询失败",
-      });
-    }
-  });
-});
+//   // const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "计算机201901";`;
+//   const sql = `SELECT COUNT(id) as stunum FROM students WHERE stuclass = "${query.classname}" and school = "${query.school}";`;
+//   console.log(sql);
+//   let stunum;
+//   db.query(sql, (err, results) => {
+//     if (err) return console.log(err.message);
+//     if (results.length) {
+//       // console.log(results[0].stunum);
+//       // stunum = results[0].stunum
+//       return res.send({
+//         state: 1,
+//         message: "查询成功",
+//         data:{
+//           results,
+//           stunum
+//         }
+//       });
+//     } else {
+//       res.send({
+//         state: 0,
+//         message: "查询失败",
+//       });
+//     }
+//   });
+// });
 
 // 班级结课/激活接口 /api/class/stateclass
 router.post("/stateclass", (req, res) => {

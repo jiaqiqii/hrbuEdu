@@ -10,9 +10,7 @@ const dayjs = require("dayjs");
 // 格式化时间
 const FormatTime = (ts) => {
   return dayjs(ts).format("YYYY-MM-DD HH:mm:ss");
-}
-
-
+};
 
 // 获取学生信息接口 /api/stu/stuinfo
 // 模糊查询学生信息复用
@@ -42,7 +40,8 @@ router.get("/stuinfo", (req, res) => {
   condition = condition.join(" ");
 
   //查询学生表信息
-  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${(query.pageNum - 1) * query.pageSize
+  const sql = `SELECT id,stuname,code,gender,stuclass,major,school,email,state FROM students ${condition} ORDER BY ts DESC LIMIT ${
+    (query.pageNum - 1) * query.pageSize
   }, ${query.pageSize};`;
 
   console.log(sql);
@@ -121,7 +120,7 @@ router.post("/resetpassword", (req, res) => {
       // 只发送一个邮箱
       // Mail("592882165@qq.com")
       // 发送多个邮箱
-      Mail(params.emailList.join(","))
+      Mail(params.emailList.join(","));
 
       return res.send({
         state: 1, //重置密码成功
@@ -163,7 +162,7 @@ router.post("/statestu", (req, res) => {
         state = CASE id ${when}
         END WHERE id IN (${price});`;
 
-  console.log("when,price",when, price);
+  console.log("when,price", when, price);
 
   // 连接数据库,更改学生状态
   const db = mysql.createPool(config);
@@ -218,6 +217,47 @@ router.post("/addstu", (req, res) => {
   });
 });
 
+// // 新增学生接口 /api/stu/addstu
+// router.post("/addstu", (req, res) => {
+//   const params = req.body;
+//   console.log(params);
+//   // 连接数据库
+//   const db = mysql.createPool(config);
+//   params.id = uuid.v1().replaceAll("-", "");
+
+//   const sql = `SELECT id FROM class WHERE classname = '${params.stuclass}' AND school = '${params.school}';`;
+
+//   let classid;
+  
+//   db.query(sql, (err, results) => {
+//     if (err) return console.log(err.message);
+//     console.log(results);
+//     if (results.length) {
+//       classid = results[0].id;
+//       console.log(classid);
+
+//       const sql = `insert into students(id,code,stuname,gender,email,phone,indent,school,major,stuclass,state,password,classid) values('${params.id}','${params.code}','${params.stuname}','${params.gender}','${params.email}','${params.phone}','${params.indent}','${params.school}','${params.major}','${params.stuclass}','1','e10adc3949ba59abbe56e057f20f883e'),'${classid}';`;
+
+//       db.query(sql, (err, results) => {
+//         if (err) return console.log(err.message);
+//         console.log(results);
+//         if (results.affectedRows) {
+//           return res.send({
+//             state: 1,
+//             message: "新增学生成功",
+//             results
+//           });
+//         }
+//       });
+//     } else {
+//       res.send({
+//         state: 0,
+//         message: "新增学生失败",
+//       });
+//     }
+//   });
+// });
+
 // 查询某个学生信息接口 /api/stu/stucheck
 router.get("/stucheck", (req, res) => {
   // 连接数据库
@@ -225,7 +265,7 @@ router.get("/stucheck", (req, res) => {
 
   const query = req.query;
   // console.log(query);
-  
+
   //查询某个学生信息
   const sql = `SELECT id,stuname,school,major,stuclass,code,gender,email,indent,introduction,state,ts FROM students WHERE id = "${query.id}";`;
   // console.log(sql);
@@ -233,25 +273,25 @@ router.get("/stucheck", (req, res) => {
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
     if (results.length) {
-        results.map((item) => {
-          item.ts = FormatTime(item.ts);
-          item.gender = item.gender === 1 ? "男" : "女";
-          item.state = item.state === 1 ? "有效" : "无效";        
-        });
+      results.map((item) => {
+        item.ts = FormatTime(item.ts);
+        item.gender = item.gender === 1 ? "男" : "女";
+        item.state = item.state === 1 ? "有效" : "无效";
+      });
       return res.send({
         state: 1,
         message: "查询学生信息成功",
-        data:{
+        data: {
           results,
-        }
+        },
       });
     } else {
       res.send({
         state: 0,
         message: "查询学生信息失败",
-        data:{
+        data: {
           results,
-        }
+        },
       });
     }
   });
@@ -265,8 +305,8 @@ router.post("/editstu", (req, res) => {
   console.log(params);
   params.gender = params.gender === "男" ? 1 : 0;
 
-  const sql =`UPDATE students SET school="${params.school}",major="${params.major}",stuclass = "${params.stuclass}",stuname="${params.stuname}",code="${params.code}",gender="${params.gender}",email="${params.email}",indent="${params.indent}",introduction="${params.introduction}" WHERE id ="${params.id}"`;
-  console.log(sql)
+  const sql = `UPDATE students SET school="${params.school}",major="${params.major}",stuclass = "${params.stuclass}",stuname="${params.stuname}",code="${params.code}",gender="${params.gender}",email="${params.email}",indent="${params.indent}",introduction="${params.introduction}" WHERE id ="${params.id}"`;
+  console.log(sql);
   db.query(sql, (err, results) => {
     if (err) return console.log(err.message);
     console.log(results);
@@ -283,7 +323,5 @@ router.post("/editstu", (req, res) => {
     }
   });
 });
-
-
 
 module.exports = router;

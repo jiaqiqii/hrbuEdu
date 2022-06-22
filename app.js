@@ -8,6 +8,10 @@ const stu = require("./api/Stu.js")
 const user = require("./api/User.js")
 const classes = require("./api/Classes.js")
 const teacher = require("./api/Teacher.js")
+// 版本改变
+const {expressjwt} = require("express-jwt");
+const secretKey = 'jiaqq :-)'
+
 
 const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
@@ -15,6 +19,33 @@ app.use(express.urlencoded({extended: false}))
 
 //对post请求的JSON数据进行接受处理
 app.use(express.json());
+
+app.use(expressjwt({
+    secret:secretKey, //设置jwt算法
+    algorithms:["HS256"]
+}).unless({
+    // 不需要验证的接口可以写多个
+    path:[
+        /^\/system\//
+    ]
+}))
+
+// 解析JWT失败后
+app.use((err,req,res,next) => {
+    // token 解析失败导致的错误
+    if(err.name === "UnauthorizedError"){
+        return res.send({
+            status:1,
+            message:"无效的token"
+        })
+    }
+    // 其他原因导致的错误
+    res.send({
+        status:2,
+        message:"未知错误"
+
+    })
+})
 
 app.use("/system/user",systemuserpost)
 app.use("/stu",stu)
