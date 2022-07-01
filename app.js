@@ -11,6 +11,11 @@ const teacher = require("./api/Teacher.js")
 const shijuan = require("./api/shijuan.js")
 const ceping = require("./api/ceping.js")
 
+const role = require("./api/Role.js")
+const school = require("./api/School.js")
+const major = require("./api/Major.js")
+const knowledge = require("./api/Knowledge.js")
+
 const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
 app.use(express.urlencoded({extended: false}))
@@ -25,6 +30,11 @@ app.use("/class", classes)
 app.use("/teacher", teacher)
 app.use("/shijuan", shijuan)
 app.use("/ceping", ceping)
+
+app.use("/role", role)
+app.use("/school", school)
+app.use("/major", major)
+app.use("/knowledge", knowledge)
  
 
 

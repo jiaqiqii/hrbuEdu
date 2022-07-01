@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const dayjs = require("dayjs");
+const uuid = require("uuid");
 
 const config = require("../config/config");
 const Query = require("mysql/lib/protocol/sequences/Query");
@@ -190,6 +191,94 @@ router.post("/disableOrActivatedUser", (req, res) => {
             res.send({
                 state: 0,
                 message: "禁用/激活失败"
+            })
+        }
+    })
+})
+
+// 新增用户接口 /api/user/adduser
+router.post("/adduser", (req, res) => {
+    const params = req.body;
+    // 连接数据库
+    const db = mysql.createPool(config);
+  
+    params.id = uuid.v1().replaceAll("-", "");
+  
+    const sql = `insert into users(id,username,password,teachname,gender,school,major,position,email,phone,state) values('${params.id}','${params.username}','${params.password}','${params.teachname}','${params.gender}','${params.email}','${params.phone}','1');`;
+    console.log(sql)
+    db.query(sql, (err, results) => {
+      if (err) return console.log(err.message);
+      console.log(results);
+      if (results.affectedRows) {
+        return res.send({
+          state: 1,
+          message: "新增用户成功",
+        });
+      } else {
+        res.send({
+          state: 0,
+          message: "新增用户失败",
+        });
+      }
+    });
+  });
+
+
+  // 获取用户信息 /api/user/onlineuserinfo
+router.get("/onlineuserinfo", (req, res) => {
+    // 连接数据库，匹配用户名与密码
+    const db = mysql.createPool(config)
+    const query = req.query;
+    let condition = "";
+    // 判断是否含有参数
+    if(Object.keys(query).length){
+        condition += "where ";
+    }
+    // 参数中包含用户状态
+    if(query.onlineuserState && query.onlineuserState != "2"){
+        condition += `state = ${query.onlineuserState} AND `;
+    }
+    if(query.searchInput){
+        condition += `username LIKE "%${query.searchInput}%" AND `;
+    }
+    // 将拼接的条件后的 “AND ” 删除
+    condition =  condition.split(" ")
+    condition.splice(condition.length-2,);
+    condition = condition.join(" ");
+
+ 
+
+    // 查询用户表
+    const sql = `select id,username,teachname,school,major,position ,state,onlinestate from users ${condition} where onlinestate="1";`;
+    // const sql = `SELECT id, username,gender,email,state,ts FROM users  ORDER BY ts DESC LIMIT  `;
+    console.log(sql);
+    db.query(sql, (err, results) => {
+        if (err) return console.log(err.message);
+        if (results.length) {
+            // 对数据进行加工
+            results.map((item) => {
+                item.onlinestate = item.onlinestate === 1 ? "有效" : "禁用";
+            })
+            const sql = `SELECT COUNT(id) AS total FROM users ${condition}`;
+            let total;
+            db.query(sql, (err, results1) => {
+                console.log(results1[0].total);
+                console.log(total);
+                total = results1[0].total
+
+                res.send({
+                    state: 1, // 查询成功
+                    message: "查询成功",
+                    data: {
+                        results,
+                        total
+                    }
+                })
+            });
+        } else {
+            res.send({
+                state: 0, // 查询失败
+                message: "查询失败",
             })
         }
     })
