@@ -8,20 +8,26 @@ const stu = require("./api/Stu.js")
 const user = require("./api/User.js")
 const classes = require("./api/Classes.js")
 const teacher = require("./api/Teacher.js")
-<<<<<<< HEAD
-// 版本改变
-const {expressjwt} = require("express-jwt");
-const secretKey = 'jiaqq :-)'
-
-=======
 const shijuan = require("./api/shijuan.js")
 const ceping = require("./api/ceping.js")
-
 const role = require("./api/Role.js")
 const school = require("./api/School.js")
 const major = require("./api/Major.js")
 const knowledge = require("./api/Knowledge.js")
->>>>>>> 159a1f9c83ff5c8930419a994aa373d62a9256c4
+// <<<<<<< HEAD
+// // 版本改变
+const {expressjwt} = require("express-jwt");
+const secretKey = 'jiaqq :-)'
+
+// =======
+// const shijuan = require("./api/shijuan.js")
+// const ceping = require("./api/ceping.js")
+
+// const role = require("./api/Role.js")
+// const school = require("./api/School.js")
+// const major = require("./api/Major.js")
+// const knowledge = require("./api/Knowledge.js")
+// >>>>>>> 159a1f9c83ff5c8930419a994aa373d62a9256c4
 
 const uuid = require("uuid")
 //对post请求的表单数据进行接受处理
